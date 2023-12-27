@@ -1,0 +1,16 @@
+---
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: "0 5 ** 0" # run at 0500 (UTC)
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ansible/ansible-lint@main

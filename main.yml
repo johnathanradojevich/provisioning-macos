@@ -1,0 +1,85 @@
+---
+- hosts: localhost
+  tasks:
+    - name: install homebrew
+      command: >
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      args:
+        creates: /usr/local/bin/brew
+        become: yes
+
+    - name: update homebrew repositories
+      community.general.homebrew_tap:
+        name: "{{ repositories }}"
+      vars:
+        repositories:
+          - homebrew/cask-fonts
+          - homebrew/cask-versions
+
+    - name: install homebrew casks
+      community.general.homebrew_cask:
+        name: "{{ casks }}"
+      vars:
+        casks:
+          - 1password
+          - docker
+          - firefox-developer-edition
+          - ilok-license-manager
+          - iterm2
+          - jetbrains-toolbox
+          - parallels
+          - texifier
+          - yubico-yubikey-manager
+
+    - name: install macports
+      command: >
+        /bin/bash -c "$(curl -fsSL https://distfiles.macports.org/MacPorts/MacPorts-2.8.1-14-Sonoma.pkg)"
+      args:
+        creates: /opt/local/bin/port
+
+    - name: install macports packages
+      community.general.macports:
+        name: "{{ ports }}"
+      vars:
+        ports:
+          - 1password-cli
+          - bash
+          - fish
+          - mas
+          - starship
+          - tmux
+          - zsh
+
+    - name: install app store applications
+      community.general.mas:
+        name: "{{ apps }}"
+      vars:
+        apps:
+          - 1447330651
+          - 1333542190
+          - 1091189122
+          - 975937182
+          - 634148309
+          - 441258766
+          - 409203825
+          - 497799835
+
+    - name: configure bash, zsh, fish as allowed shells
+      ansible.builtin.shell: |
+        for shell in bash zsh fish; do
+          path=$(which $shell)
+          if [ -n "$path" ]; then
+            grep -qF "$path" /etc/shells || echo "$path" >> /etc/shells
+          fi
+        done
+      become: yes
+
+    - name: set fish as shell
+      ansible.builtin.shell: chsh -s $(which fish)
+      become: yes
+
+    - name: install starship prompt
+      lineinfile:
+        path: ~/.config/fish/config.fish
+        line: "starship init fish | source"
+        state: present

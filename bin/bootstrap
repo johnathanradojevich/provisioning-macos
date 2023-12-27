@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# install xcode command line tools
+xcode-select --install
+
+# accept xcode tools agreements
+sudo xcodebuild --install
+
+# install pip
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3 get-pip.py
+
+# install ansible
+sudo pip3 install ansible
+ansible-galaxy install -r requirements.yml
+
+# execute automated provisioning
+ansible-playbook -i "localhost" -c local main.yml --ask-become-pass
